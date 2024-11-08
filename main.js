@@ -26,8 +26,6 @@ gui.add(options, "wireframe").onChange(function (e) {
 
 gui.add(options, "speed", 0, 0.01);
 
-let step = 0;
-
 // We allocate space to it by giving the entire
 // width and height property of our website window
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -37,16 +35,19 @@ document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 
+// This is for the camera functionality - often used in flight simulators
+// In short words - First Person Controls to stimulate flying experience
+// const fPControls = new FirstPersonControls(camera, renderer.domElement);
+
+// ---------------- //
+// Camera & Helpers
+
 const camera = new THREE.PerspectiveCamera(
   75, // Field of view - anything between 40 and 8 are sufficient
   window.innerWidth / window.innerHeight, // Aspect ratio which we calculate by dividing our canvas size
   0.1, // Near clipping plane
   1000 // Far clipping plane
 );
-
-// This is for the camera functionality - often used in flight simulators
-// In short words - First Person Controls to stimulate flying experience
-// const fPControls = new FirstPersonControls(camera, renderer.domElement);
 
 const orbitControls = new OrbitControls(camera, renderer.domElement);
 
@@ -59,6 +60,9 @@ orbitControls.update();
 
 const gridHelper = new THREE.GridHelper(15, 20);
 scene.add(gridHelper);
+
+// ---------------- //
+// Shapes & Geometries
 
 // Box Scene
 const geometry = new THREE.BoxGeometry();
@@ -74,7 +78,7 @@ box.scale.set(1, 2, 1);
 // Plane scene - plane is a two dimensional surface, more like a floor
 
 const planeGeometry = new THREE.PlaneGeometry(15, 15);
-const planeMaterial = new THREE.MeshBasicMaterial({
+const planeMaterial = new THREE.MeshStandardMaterial({
   side: THREE.DoubleSide,
 });
 const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
@@ -90,13 +94,35 @@ const sphereGeometry = new THREE.SphereGeometry(2, 60, 60);
 
 // MeshStandardMaterial requires light in order to be able to be seen
 // Just like in real life, If no light everything will be dark
-const sphereMaterial = new THREE.MeshBasicMaterial({
+const sphereMaterial = new THREE.MeshPhongMaterial({
   color: 0x0000ff,
-  wireframe: true,
 });
 
 const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
 scene.add(sphereMesh);
+
+// ---------------- //
+// Light sources
+
+const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+scene.add(ambientLight);
+
+const directionalLight = new THREE.DirectionalLight(0xffffff);
+scene.add(directionalLight);
+directionalLight.position.set(-5, 8, 0);
+const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 3);
+scene.add(dLightHelper);
+
+const spotlight = new THREE.SpotLight(0xffffff, 1000);
+scene.add(spotlight);
+spotlight.position.set(-2, 8, 0);
+const sLightHelper = new THREE.SpotLightHelper(spotlight);
+scene.add(sLightHelper);
+
+// ---------------- //
+// Loop Animation
+
+let step = 0;
 
 function animate(time) {
   step += options.speed;

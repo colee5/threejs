@@ -17,6 +17,7 @@ const renderer = new THREE.WebGLRenderer();
 const gui = new dat.GUI();
 
 const cubeTextureLoader = new THREE.CubeTextureLoader();
+const textureLoader = new THREE.TextureLoader();
 
 const cubeTexture = cubeTextureLoader.load([
   "/End of tweet banner.png",
@@ -27,6 +28,13 @@ const cubeTexture = cubeTextureLoader.load([
   "/End of tweet banner-5.png",
 ]);
 
+const boxTexture = textureLoader.load("/texture.png");
+boxTexture.colorSpace = THREE.SRGBColorSpace;
+
+const boxGeo = new THREE.BoxGeometry(2, 2, 2);
+const boxMat = new THREE.MeshBasicMaterial({ map: boxTexture });
+const boxMesh = new THREE.Mesh(boxGeo, boxMat);
+boxMesh.position.set(-5, 2, 0);
 // Addressing the issue of the background being washed out
 // backgroundImage.colorSpace = THREE.SRGBColorSpace;
 
@@ -71,6 +79,7 @@ document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 // scene.background = backgroundImage;
+scene.add(boxMesh);
 scene.background = cubeTexture;
 // This is for the camera functionality - often used in flight simulators
 // In short words - First Person Controls to stimulate flying experience
@@ -189,3 +198,9 @@ function animate(): void {
 
 renderer.setAnimationLoop(animate);
 renderer.setClearColor(0x1b1b1b);
+
+window.addEventListener("resize", function () {
+  camera.aspect = this.window.innerWidth / this.window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(this.window.innerWidth, this.window.innerHeight);
+});

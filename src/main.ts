@@ -2,6 +2,15 @@ import * as THREE from "three";
 import * as dat from "dat.gui";
 import { OrbitControls } from "three/examples/jsm/Addons.js";
 
+interface GuiOptions {
+  color: number;
+  wireframe: boolean;
+  speed: number;
+  intensity: number;
+  angle: number;
+  penumbra: number;
+}
+
 // We initialize an instance, tool that three.js
 // uses to allocate space on the webpage
 const renderer = new THREE.WebGLRenderer();
@@ -9,19 +18,32 @@ const gui = new dat.GUI();
 
 // These are options which are handled by the GUI to give
 // us the colorpicker and the switch, etc..
-const options = {
+const options: GuiOptions = {
   color: 0x0000ff,
   wireframe: false,
   speed: 0.01,
+  intensity: 0,
+  angle: 0.2,
+  penumbra: 0,
 };
 
 // We append the helpers into the GUI
-gui.addColor(options, "color").onChange(function (e) {
+gui.addColor(options, "color").onChange(function (e: number) {
   sphereMesh.material.color.set(e);
 });
 
-gui.add(options, "wireframe").onChange(function (e) {
+gui.add(options, "wireframe").onChange(function (e: boolean) {
   sphereMesh.material.wireframe = e;
+});
+
+gui.add(options, "intensity", 0, 1000).onChange(function (e: number) {
+  spotlight.intensity = e;
+});
+gui.add(options, "angle", 0, 2).onChange(function (e: number) {
+  spotlight.angle = e;
+});
+gui.add(options, "penumbra", 0, 1).onChange(function (e: number) {
+  spotlight.penumbra = e;
 });
 
 gui.add(options, "speed", 0, 0.01);
@@ -55,7 +77,10 @@ const orbitControls = new OrbitControls(camera, renderer.domElement);
 const axesHelper = new THREE.AxesHelper(5);
 scene.add(axesHelper);
 
-camera.position.set(0, 2, 5);
+// Enabling shadows - disabled by default
+renderer.shadowMap.enabled = true;
+
+camera.position.set(5, 10, 15);
 orbitControls.update();
 
 const gridHelper = new THREE.GridHelper(15, 20);
@@ -84,6 +109,7 @@ const planeMaterial = new THREE.MeshStandardMaterial({
 const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
 scene.add(planeMesh);
 
+planeMesh.receiveShadow = true;
 planeMesh.rotation.x = -0.5 * Math.PI;
 
 // The default values for the horizontal segments is 32
@@ -99,6 +125,7 @@ const sphereMaterial = new THREE.MeshPhongMaterial({
 });
 
 const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+sphereMesh.castShadow = true;
 scene.add(sphereMesh);
 
 // ---------------- //
@@ -112,11 +139,19 @@ scene.add(directionalLight);
 directionalLight.position.set(-5, 8, 0);
 const dLightHelper = new THREE.DirectionalLightHelper(directionalLight, 3);
 scene.add(dLightHelper);
+// For a known problem and since every light uses additional camera
+// for it's shadow, we use a helper for this.
+const dLightShadowHelper = new THREE.CameraHelper(
+  directionalLight.shadow.camera
+);
+scene.add(dLightShadowHelper);
+directionalLight.shadow.camera.top = 7;
 
 const spotlight = new THREE.SpotLight(0xffffff, 1000);
 scene.add(spotlight);
-spotlight.position.set(-2, 8, 0);
+spotlight.position.set(-5, 8, 0);
 const sLightHelper = new THREE.SpotLightHelper(spotlight);
+spotlight.castShadow = true;
 scene.add(sLightHelper);
 
 // ---------------- //
@@ -124,9 +159,10 @@ scene.add(sLightHelper);
 
 let step = 0;
 
-function animate(time) {
+function animate(time: number): void {
   step += options.speed;
-  sphereMesh.position.y = 3 * Math.abs(Math.sin(step));
+  sLightHelper.update();
+  // sphereMesh.position.y = 3 * Math.abs(Math.sin(step));
   renderer.render(scene, camera);
 }
 

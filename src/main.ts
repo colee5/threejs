@@ -16,6 +16,20 @@ interface GuiOptions {
 const renderer = new THREE.WebGLRenderer();
 const gui = new dat.GUI();
 
+const cubeTextureLoader = new THREE.CubeTextureLoader();
+
+const cubeTexture = cubeTextureLoader.load([
+  "/End of tweet banner.png",
+  "/End of tweet banner-1.png",
+  "/End of tweet banner-2.png",
+  "/End of tweet banner-3.png",
+  "/End of tweet banner-4.png",
+  "/End of tweet banner-5.png",
+]);
+
+// Addressing the issue of the background being washed out
+// backgroundImage.colorSpace = THREE.SRGBColorSpace;
+
 // These are options which are handled by the GUI to give
 // us the colorpicker and the switch, etc..
 const options: GuiOptions = {
@@ -56,7 +70,8 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-
+// scene.background = backgroundImage;
+scene.background = cubeTexture;
 // This is for the camera functionality - often used in flight simulators
 // In short words - First Person Controls to stimulate flying experience
 // const fPControls = new FirstPersonControls(camera, renderer.domElement);
@@ -104,6 +119,7 @@ box.scale.set(1, 2, 1);
 
 const planeGeometry = new THREE.PlaneGeometry(15, 15);
 const planeMaterial = new THREE.MeshStandardMaterial({
+  color: 0x0000,
   side: THREE.DoubleSide,
 });
 const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
@@ -154,6 +170,11 @@ const sLightHelper = new THREE.SpotLightHelper(spotlight);
 spotlight.castShadow = true;
 scene.add(sLightHelper);
 
+// First method of instantiating Fog
+// scene.fog = new THREE.Fog(0x5500af, 0, 50);
+
+// Second method of instantiating Fog
+scene.fog = new THREE.FogExp2(0x5500af, 0.03);
 // ---------------- //
 // Loop Animation
 
@@ -167,3 +188,4 @@ function animate(): void {
 }
 
 renderer.setAnimationLoop(animate);
+renderer.setClearColor(0x1b1b1b);

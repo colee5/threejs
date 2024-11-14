@@ -159,7 +159,7 @@ scene.add(sLightHelper);
 
 let step = 0;
 
-function animate(time: number): void {
+function animate(): void {
   step += options.speed;
   sLightHelper.update();
   // sphereMesh.position.y = 3 * Math.abs(Math.sin(step));

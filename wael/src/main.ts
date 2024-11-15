@@ -13,7 +13,9 @@ interface GuiOptions {
 
 // We initialize an instance, tool that three.js
 // uses to allocate space on the webpage
-const renderer = new THREE.WebGLRenderer();
+const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
 const gui = new dat.GUI();
 
 const cubeTextureLoader = new THREE.CubeTextureLoader();
